@@ -4,431 +4,490 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>KIM Start Angle — optimal gantry start angle for prostate KIM</title>
-<meta name="description" content="A clinical desktop tool that turns a planning-CT centroid file into the optimal Elekta gantry start angle for KIM (kV Intrafraction Monitoring) prostate treatments." />
-<meta name="theme-color" content="#080B14" />
+<meta name="description" content="A clinical desktop tool that turns a planning-CT centroid file into the optimal Elekta gantry start angle for prostate kV intrafraction monitoring (KIM)." />
+<meta name="theme-color" content="#00a869" />
 <meta property="og:title" content="KIM Start Angle" />
-<meta property="og:description" content="Find the gantry angle that keeps every prostate fiducial separated on the kV imager — in one click." />
+<meta property="og:description" content="Find the gantry angle that keeps all three prostate fiducials separated on the kV imager." />
 <meta property="og:type" content="website" />
 
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='52' fill='%230F172A'/%3E%3Ccircle cx='128' cy='128' r='82' fill='none' stroke='%237C3AED' stroke-width='13'/%3E%3Cline x1='175' y1='61' x2='81' y2='195' stroke='%23F59E0B' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='99.8' y1='208.2' x2='62.2' y2='181.8' stroke='%23F59E0B' stroke-width='16' stroke-linecap='round'/%3E%3Ccircle cx='175' cy='61' r='10' fill='%23F59E0B'/%3E%3Ccircle cx='117' cy='120' r='8.5' fill='%23E2E8F0'/%3E%3Ccircle cx='140' cy='125' r='8.5' fill='%23E2E8F0'/%3E%3Ccircle cx='126' cy='141' r='8.5' fill='%23E2E8F0'/%3E%3C/svg%3E" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Ccircle cx='128' cy='128' r='88' fill='none' stroke='%2300a869' stroke-width='18'/%3E%3Ccircle cx='190' cy='66' r='26' fill='%23333438'/%3E%3Crect x='-30' y='-11' width='60' height='22' rx='11' fill='%23333438' transform='translate(66,190) rotate(45)'/%3E%3C/svg%3E" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
+/* ============================================================
+   GenesisCare design system — tokens (colors_and_type.css)
+   White paper, fine grey rules, one green highlight per screen,
+   eight-pixel corners, no shadows, no flourishes.
+   ============================================================ */
 :root{
-  --bg:#080B14; --bg-2:#0F172A;
-  --panel:rgba(20,29,49,.66); --panel-solid:#111A2C;
-  --edge:#243049; --edge-bright:#33415A;
-  --ink:#E8EDF5; --muted:#8A98B0; --faint:#5A6884;
-  --amber:#F5A623; --amber-2:#FFC663; --amber-glow:rgba(245,166,35,.5);
-  --violet:#7C3AED; --violet-2:#9B6BFF; --violet-glow:rgba(124,58,237,.45);
-  --cyan:#47BFFF;
-  --serif:"Fraunces",Georgia,serif;
-  --sans:"IBM Plex Sans",system-ui,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,monospace;
-  --maxw:1180px;
+  /* brand — the only hue in the system */
+  --gc-green:#00a869; --gc-green-deep:#008f5a; --gc-green-dark:#138f5b;
+  --gc-green-soft:#e8f7f0; --gc-green-line:#9edfc5; --gc-green-edge:#b9e8d3;
+
+  /* neutrals */
+  --gc-ink-strong:#333438; --gc-ink:#4f4f53; --gc-muted:#6a6b71;
+  --gc-line:#d9d9d9; --gc-band:#f3f3f3; --gc-band-soft:#fbfbfb; --gc-surface:#ffffff;
+
+  /* semantic */
+  --gc-danger:#b93a31; --gc-danger-soft:#ffe9e5; --gc-danger-line:#efb4aa;
+  --gc-warn-bg:#fff5df; --gc-warn-line:#f0cf8a; --gc-warn-text:#75520f;
+
+  /* type — marketing surface: Source Sans 3, headings never bold */
+  --font-marketing:"Source Sans 3","Source Sans Pro",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:"JetBrains Mono","Cascadia Mono",Consolas,monospace;
+  --fs-eyebrow:0.75rem; --fs-micro:0.76rem; --fs-small:0.78rem; --fs-body:0.9rem;
+  --tracking-eyebrow:0.08em;
+
+  /* two radii, nothing between */
+  --r-sm:8px; --r-pill:999px;
+
+  /* the only shadow in the system */
+  --shadow-focus:0 0 0 3px rgba(0,168,105,.25);
+
+  --t-fast:140ms ease;
+  --hover-lift:translateY(-1px);
+
+  /* reading column — narrower than the dashboard's 1500px shell */
+  --measure:1120px;
 }
+
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
-  background:var(--bg); color:var(--ink); font-family:var(--sans);
-  line-height:1.55; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  font-family:var(--font-marketing);
+  color:var(--gc-ink);
   font-size:16px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  /* signature: a 32px engineering-paper grid at 3.5% green */
+  background:linear-gradient(90deg,rgba(0,168,105,.035) 1px,transparent 1px) 0 0 / 32px 32px,var(--gc-surface);
 }
-/* layered atmosphere */
-.bg-fx{position:fixed; inset:0; z-index:-2; pointer-events:none}
-.bg-fx::before{ /* radial glows */
-  content:""; position:absolute; inset:0;
-  background:
-    radial-gradient(60% 50% at 78% 8%, rgba(124,58,237,.20), transparent 60%),
-    radial-gradient(50% 45% at 12% 92%, rgba(245,166,35,.12), transparent 60%),
-    radial-gradient(40% 40% at 95% 80%, rgba(71,191,255,.07), transparent 60%);
-}
-.bg-grid{position:fixed; inset:0; z-index:-2; pointer-events:none; opacity:.4;
-  background-image:
-    linear-gradient(rgba(51,65,90,.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(51,65,90,.12) 1px, transparent 1px);
-  background-size:54px 54px;
-  mask-image:radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
-}
-.grain{position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.05; mix-blend-mode:overlay}
+img{max-width:100%;display:block}
 
-/* nav */
+:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
+/* class-level `display` beats the UA's [hidden] rule — force it back */
+[hidden]{display:none !important}
+
+/* ---------- shared ---------- */
+.wrap{max-width:var(--measure);margin:0 auto;padding:0 24px}
+.section{padding:clamp(60px,8vw,104px) 0}
+.section + .section{padding-top:0}
+
+.eyebrow{
+  font-size:var(--fs-eyebrow); font-weight:800; letter-spacing:var(--tracking-eyebrow);
+  text-transform:uppercase; color:var(--gc-green-dark); margin:0 0 14px;
+}
+h1,h2,h3{font-weight:300;color:var(--gc-ink);letter-spacing:-.005em}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);line-height:1.08}
+h2{font-size:clamp(1.5rem,3vw,2rem);line-height:1.15}
+h3{font-size:1.15rem;font-weight:400;color:var(--gc-ink-strong)}
+.lede{font-size:1.125rem;line-height:1.5;max-width:52ch}
+.sec-head{max-width:62ch;margin-bottom:36px}
+.sec-head p{margin-top:12px;font-size:1rem;max-width:60ch}
+.mono{font-family:var(--font-mono)}
+
+a{color:var(--gc-green);font-weight:600;text-decoration:underline}
+a:hover{color:var(--gc-green-deep)}
+
+/* ---------- buttons: full pill, 1.5px stroke ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--font-marketing);font-weight:500;font-size:15px;line-height:1;
+  padding:14px 26px;border-radius:var(--r-pill);
+  border:1.5px solid var(--gc-green);background:var(--gc-surface);color:var(--gc-green);
+  text-decoration:none;cursor:pointer;white-space:nowrap;
+  transition:background var(--t-fast),color var(--t-fast),transform var(--t-fast),border-color var(--t-fast);
+}
+.btn:hover{background:var(--gc-green-soft);color:var(--gc-green);transform:var(--hover-lift)}
+.btn.primary{background:var(--gc-green);color:#fff}
+.btn.primary:hover{background:var(--gc-green-deep);border-color:var(--gc-green-deep);color:#fff}
+.btn[aria-disabled="true"]{opacity:.5;pointer-events:none}
+.btn svg{width:18px;height:18px;flex:none}
+.btn-meta{
+  font-family:var(--font-mono);font-size:12px;
+  border-left:1px solid rgba(255,255,255,.45);padding-left:12px;margin-left:2px;
+}
+.btn-meta:empty{display:none}
+
+/* ---------- capsules: status only, never buttons ---------- */
+.cap{
+  display:inline-flex;align-items:center;gap:6px;
+  border-radius:var(--r-pill);border:1px solid var(--gc-line);background:var(--gc-surface);
+  font-size:var(--fs-micro);font-weight:800;text-transform:uppercase;letter-spacing:.02em;
+  padding:5px 10px;color:var(--gc-ink);
+}
+.cap.pass{background:var(--gc-green-soft);border-color:var(--gc-green-line);color:var(--gc-green-deep)}
+
+/* ---------- notices ---------- */
+.notice{border-radius:var(--r-sm);padding:12px 14px;font-size:var(--fs-body)}
+.notice.info{background:var(--gc-green-soft);border:1px solid var(--gc-green-edge);color:var(--gc-ink-strong)}
+.notice.error{background:var(--gc-danger-soft);border:1px solid var(--gc-danger-line);color:var(--gc-danger)}
+
+/* ---------- header ---------- */
+.site-head{position:sticky;top:0;z-index:50;background:var(--gc-surface);border-bottom:1px solid var(--gc-line)}
+.stripe{height:6px;background:var(--gc-green)}
 nav{
-  position:sticky; top:0; z-index:50;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:18px clamp(20px,5vw,48px);
-  backdrop-filter:blur(14px) saturate(140%);
-  background:linear-gradient(to bottom, rgba(8,11,20,.85), rgba(8,11,20,.4));
-  border-bottom:1px solid rgba(36,48,73,.6);
+  max-width:var(--measure);margin:0 auto;padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
 }
-.brand{display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--ink)}
-.brand svg{width:34px; height:34px; display:block}
-.brand b{font-family:var(--sans); font-weight:600; font-size:15px; letter-spacing:.02em}
-.brand .sub{font-family:var(--mono); font-size:10px; color:var(--faint); letter-spacing:.18em; text-transform:uppercase; display:block; margin-top:1px}
-.nav-right{display:flex; align-items:center; gap:18px}
-.vchip{
-  font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--amber);
-  border:1px solid rgba(245,166,35,.32); border-radius:999px; padding:5px 11px;
-  background:rgba(245,166,35,.06); white-space:nowrap;
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--gc-ink-strong);font-weight:400}
+.brand svg{width:32px;height:32px;flex:none}
+.brand b{display:block;font-weight:600;font-size:15px;color:var(--gc-ink-strong)}
+.brand .sub{display:block;font-size:11px;color:var(--gc-muted);font-weight:400}
+.nav-right{display:flex;align-items:center;gap:22px}
+.nav-link{font-size:14px;color:var(--gc-ink);font-weight:400;text-decoration:none}
+.nav-link:hover{color:var(--gc-green-deep);text-decoration:underline}
+#navVersion{
+  font-family:var(--font-mono);font-size:12px;font-weight:400;text-decoration:none;
+  color:var(--gc-green-deep);background:var(--gc-green-soft);
+  border:1px solid var(--gc-green-line);border-radius:var(--r-pill);padding:5px 11px;white-space:nowrap;
 }
-.nav-link{font-family:var(--mono); font-size:12px; color:var(--muted); text-decoration:none; letter-spacing:.04em; transition:color .2s}
-.nav-link:hover{color:var(--ink)}
 
-/* layout */
-.wrap{max-width:var(--maxw); margin:0 auto; padding:0 clamp(20px,5vw,48px)}
-section{position:relative}
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:clamp(56px,8vw,96px) 0}
+.hero .lede{margin-top:18px}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:32px}
+.os-note{font-family:var(--font-mono);font-size:12px;color:var(--gc-muted);margin-top:20px}
 
-/* hero */
-.hero{display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;
-  padding:clamp(56px,9vw,120px) 0 clamp(48px,7vw,90px)}
-.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.26em; text-transform:uppercase;
-  color:var(--violet-2); display:flex; align-items:center; gap:10px; margin-bottom:22px}
-.eyebrow::before{content:""; width:26px; height:1px; background:linear-gradient(90deg,var(--violet),transparent)}
-h1{font-family:var(--serif); font-weight:500; font-size:clamp(40px,6.4vw,76px); line-height:1.02;
-  letter-spacing:-.018em; margin-bottom:24px}
-h1 em{font-style:italic; color:var(--amber); font-weight:500}
-.lede{font-size:clamp(16px,1.5vw,19px); color:var(--muted); max-width:46ch; margin-bottom:36px}
-.lede b{color:var(--ink); font-weight:500}
-
-.cta-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap}
-.dl{
-  position:relative; display:inline-flex; align-items:center; gap:14px;
-  font-family:var(--sans); font-weight:600; font-size:15px; text-decoration:none;
-  color:#1A1205; background:linear-gradient(135deg,var(--amber-2),var(--amber));
-  padding:16px 26px; border-radius:13px; letter-spacing:.01em;
-  box-shadow:0 8px 30px -8px var(--amber-glow), inset 0 1px 0 rgba(255,255,255,.4);
-  transition:transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .25s; overflow:hidden;
+/* circular crop with the pale-green disc scatter behind */
+.ring-stage{position:relative;display:grid;place-items:center}
+.ring-inner{position:relative;width:min(380px,78vw);aspect-ratio:1}
+/* scatter is sized to the crop, not the column, so it stays a cluster */
+.scatter{position:absolute;inset:-13%;pointer-events:none}
+.scatter span{position:absolute;border-radius:50%;background:var(--gc-green-soft)}
+.scatter .d1{width:42%;height:42%;right:0;top:3%}
+.scatter .d2{width:28%;height:28%;left:0;top:46%}
+.scatter .d3{width:36%;height:36%;right:9%;bottom:0;opacity:.65}
+.crop{
+  position:relative;width:100%;height:100%;border-radius:50%;
+  background:var(--gc-band-soft);border:1px solid var(--gc-line);
+  display:grid;place-items:center;overflow:hidden;
 }
-.dl:hover{transform:translateY(-2px); box-shadow:0 16px 44px -10px var(--amber-glow), inset 0 1px 0 rgba(255,255,255,.5)}
-.dl:active{transform:translateY(0)}
-.dl[aria-disabled="true"]{opacity:.55; pointer-events:none; filter:grayscale(.3)}
-.dl svg{width:18px; height:18px}
-.dl .meta{font-family:var(--mono); font-size:11px; font-weight:500; opacity:.7; border-left:1px solid rgba(26,18,5,.3); padding-left:12px; margin-left:2px}
-.dl::after{ /* sheen */
-  content:""; position:absolute; top:0; left:-60%; width:40%; height:100%;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
-  transform:skewX(-18deg); animation:sheen 5.5s ease-in-out infinite; animation-delay:1.2s;
+.crop svg{width:74%;height:74%}
+.hero-chip{
+  position:absolute;right:0;bottom:8%;z-index:2;
+  background:var(--gc-surface);border:1px solid var(--gc-line);border-radius:var(--r-sm);
+  padding:10px 13px;
 }
-@keyframes sheen{0%,72%{left:-60%} 86%,100%{left:130%}}
-.ghost{font-family:var(--mono); font-size:13px; color:var(--muted); text-decoration:none;
-  letter-spacing:.03em; display:inline-flex; align-items:center; gap:7px; transition:color .2s, gap .2s}
-.ghost:hover{color:var(--amber)}
-.ghost:hover{gap:11px}
-.os-note{font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:18px; letter-spacing:.04em}
-
-/* gantry ring hero art */
-.ring-stage{display:flex; align-items:center; justify-content:center; position:relative}
-.ring-stage svg{width:min(440px,82vw); height:auto; overflow:visible}
-.ring-stage::before{content:""; position:absolute; width:60%; aspect-ratio:1; border-radius:50%;
-  background:radial-gradient(circle,var(--violet-glow),transparent 70%); filter:blur(30px); z-index:-1}
-@keyframes spin{to{transform:rotate(360deg)}}
-.beam-group{transform-origin:200px 200px; animation:spin 22s linear infinite}
-.draw{stroke-dasharray:1; stroke-dashoffset:1; animation:draw 2s ease forwards .2s}
-@keyframes draw{to{stroke-dashoffset:0}}
-.pulse{animation:pulse 2.6s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:.55} 50%{opacity:1}}
-.float-chip{
-  position:absolute; top:14%; right:6%;
-  font-family:var(--mono); font-size:12px; color:var(--amber); letter-spacing:.06em;
-  border:1px solid rgba(245,166,35,.4); background:rgba(245,166,35,.08);
-  border-radius:8px; padding:7px 11px; backdrop-filter:blur(6px);
-  box-shadow:0 6px 20px -8px var(--amber-glow);
+.hero-chip b{display:block;font-family:var(--font-mono);font-size:15px;font-weight:500;color:var(--gc-ink-strong)}
+.hero-chip span{
+  display:block;margin-top:3px;font-size:var(--fs-micro);font-weight:800;
+  letter-spacing:var(--tracking-eyebrow);text-transform:uppercase;color:var(--gc-muted);
 }
-.float-chip span{color:var(--faint); display:block; font-size:9px; letter-spacing:.18em; margin-top:2px}
 
-/* stat strip */
-.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--edge);
-  border:1px solid var(--edge); border-radius:16px; overflow:hidden; margin-top:8px}
-.stat{background:var(--bg-2); padding:22px 20px}
-.stat .n{font-family:var(--serif); font-size:30px; font-weight:500; color:var(--ink); line-height:1}
-.stat .n small{font-size:16px; color:var(--amber); font-family:var(--mono)}
-.stat .l{font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--faint); margin-top:9px}
+/* ---------- screenshot ---------- */
+.shot{border:1px solid var(--gc-line);border-radius:var(--r-sm);overflow:hidden;background:var(--gc-band-soft)}
+.shot img{width:100%}
 
-/* section heading */
-.sec-head{margin-bottom:44px; max-width:60ch}
-.sec-kicker{font-family:var(--mono); font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--violet-2); margin-bottom:14px}
-.sec-head h2{font-family:var(--serif); font-weight:500; font-size:clamp(28px,4vw,44px); letter-spacing:-.01em; line-height:1.08}
-.sec-head p{color:var(--muted); margin-top:14px; font-size:16px}
-.divider{height:1px; background:linear-gradient(90deg,transparent,var(--edge),transparent); margin:0 auto}
+/* ---------- metric band ---------- */
+.metrics{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--gc-line);border:1px solid var(--gc-line);border-radius:var(--r-sm);
+  overflow:hidden;margin-top:36px;
+}
+.metric{background:var(--gc-surface);padding:18px 20px}
+.metric .n{font-size:1.6rem;font-weight:700;color:var(--gc-ink-strong);line-height:1.1}
+.metric .l{
+  margin-top:6px;font-size:var(--fs-small);font-weight:800;
+  text-transform:uppercase;letter-spacing:.02em;color:var(--gc-muted);
+}
 
-.pad{padding:clamp(56px,8vw,104px) 0}
-
-/* feature cards */
-.cards{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
+/* ---------- step cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .card{
-  position:relative; background:var(--panel); border:1px solid var(--edge); border-radius:18px;
-  padding:30px 26px 32px; overflow:hidden; backdrop-filter:blur(8px);
-  transition:transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, background .3s;
+  background:var(--gc-surface);border:1px solid var(--gc-line);border-radius:var(--r-sm);
+  padding:24px;transition:transform var(--t-fast),border-color var(--t-fast);
 }
-.card:hover{transform:translateY(-5px); border-color:var(--edge-bright); background:rgba(24,34,57,.8)}
-.card .ic{width:46px; height:46px; border-radius:12px; display:grid; place-items:center; margin-bottom:20px;
-  border:1px solid var(--edge-bright); background:rgba(124,58,237,.08)}
-.card .ic svg{width:24px; height:24px}
-.card h3{font-family:var(--serif); font-weight:500; font-size:21px; margin-bottom:10px; letter-spacing:-.01em}
-.card p{color:var(--muted); font-size:14.5px}
-.card .num{position:absolute; top:20px; right:22px; font-family:var(--mono); font-size:11px; color:var(--faint); letter-spacing:.1em}
+.card:hover{transform:var(--hover-lift);border-color:var(--gc-green-line)}
+.card .ic{color:var(--gc-green);margin-bottom:16px}
+.card .ic svg{width:24px;height:24px}
+.card h3{margin:0 0 8px}
+.card p{font-size:var(--fs-body);color:var(--gc-ink);line-height:1.55}
+.card code{font-family:var(--font-mono);font-size:.85em;background:var(--gc-green-soft);border-radius:var(--r-sm);padding:1px 6px;color:var(--gc-green-deep)}
 
-/* release panel */
-.release{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--edge);
-  border-radius:20px; overflow:hidden; background:var(--panel-solid)}
-.release .left{padding:clamp(30px,4vw,46px); border-right:1px solid var(--edge)}
-.release .right{padding:clamp(30px,4vw,46px); background:var(--bg-2)}
-.rel-tag{display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:12px;
-  color:var(--amber); border:1px solid rgba(245,166,35,.3); border-radius:999px; padding:5px 12px;
-  background:rgba(245,166,35,.06); letter-spacing:.06em; margin-bottom:22px}
-.rel-tag .dot{width:7px; height:7px; border-radius:50%; background:var(--amber); box-shadow:0 0 10px var(--amber)}
-.release h3{font-family:var(--serif); font-weight:500; font-size:clamp(24px,3vw,34px); letter-spacing:-.01em; margin-bottom:8px}
-.rel-meta{display:flex; flex-wrap:wrap; gap:8px 22px; margin:22px 0 28px}
-.rel-meta div{font-family:var(--mono); font-size:12.5px; color:var(--muted)}
-.rel-meta span{color:var(--faint); display:block; font-size:10px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:4px}
-.rel-meta b{color:var(--ink); font-weight:500}
-.notes-label{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); margin-bottom:16px}
-.notes{font-size:14px; color:var(--muted); max-height:260px; overflow:auto}
-.notes h4{font-family:var(--sans); color:var(--ink); font-size:14px; font-weight:600; margin:16px 0 6px}
-.notes ul{padding-left:18px; margin:6px 0}
+/* ---------- release panel ---------- */
+.release{
+  display:grid;grid-template-columns:1fr 1fr;
+  border:1px solid var(--gc-line);border-radius:var(--r-sm);overflow:hidden;background:var(--gc-surface);
+}
+.release .left{padding:28px}
+.release .right{padding:28px;background:var(--gc-band-soft);border-left:1px solid var(--gc-line)}
+.rel-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+#relTag{font-family:var(--font-mono);font-size:13px;color:var(--gc-muted)}
+.release h3{margin-bottom:20px}
+.rel-meta{display:flex;flex-wrap:wrap;gap:14px 32px;margin-bottom:26px}
+.rel-meta span{
+  display:block;font-size:var(--fs-small);font-weight:800;
+  text-transform:uppercase;letter-spacing:.02em;color:var(--gc-muted);margin-bottom:4px;
+}
+.rel-meta b{font-family:var(--font-mono);font-size:var(--fs-body);font-weight:500;color:var(--gc-ink-strong)}
+#fallbackNote{margin-top:20px}
+.notes-label{
+  font-size:var(--fs-small);font-weight:800;text-transform:uppercase;
+  letter-spacing:.02em;color:var(--gc-muted);margin-bottom:14px;
+}
+.notes{font-size:var(--fs-body);color:var(--gc-ink);max-height:300px;overflow:auto}
+.notes h4{font-size:var(--fs-body);font-weight:600;color:var(--gc-ink-strong);margin:16px 0 6px}
+.notes ul{padding-left:18px;margin:6px 0}
 .notes li{margin:4px 0}
-.notes a{color:var(--cyan); text-decoration:none}
-.notes code{font-family:var(--mono); font-size:12px; background:rgba(124,58,237,.12); padding:1px 5px; border-radius:4px; color:var(--violet-2)}
+.notes code{font-family:var(--font-mono);font-size:12px;background:var(--gc-green-soft);border-radius:var(--r-sm);padding:1px 6px;color:var(--gc-green-deep)}
 .notes::-webkit-scrollbar{width:6px}
-.notes::-webkit-scrollbar-thumb{background:var(--edge-bright); border-radius:3px}
+.notes::-webkit-scrollbar-thumb{background:var(--gc-line);border-radius:var(--r-pill)}
 
-/* warning */
-.warn{border:1px solid rgba(245,166,35,.35); background:
-   linear-gradient(180deg, rgba(245,166,35,.07), rgba(245,166,35,.02));
-  border-radius:18px; padding:clamp(28px,4vw,40px); position:relative; overflow:hidden}
-.warn::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px;
-  background:linear-gradient(180deg,var(--amber),rgba(245,166,35,.2))}
-.warn .wh{display:flex; align-items:center; gap:13px; margin-bottom:18px}
-.warn .wh svg{width:26px; height:26px; flex:none}
-.warn h3{font-family:var(--serif); font-weight:600; font-size:22px; color:var(--amber-2); letter-spacing:-.01em}
-.warn p{color:var(--muted); font-size:15px; max-width:74ch}
-.warn ul{margin:16px 0 0; padding-left:20px; color:var(--muted); font-size:14.5px}
-.warn li{margin:8px 0}
-.warn b{color:var(--ink); font-weight:500}
+/* ---------- safety notice ---------- */
+.warn{
+  background:var(--gc-warn-bg);border:1px solid var(--gc-warn-line);border-radius:var(--r-sm);
+  padding:28px;color:var(--gc-warn-text);
+}
+.warn-head{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+.warn-head svg{width:22px;height:22px;flex:none}
+.warn h2{font-size:1.25rem;font-weight:400;color:var(--gc-warn-text)}
+.warn p{font-size:var(--fs-body);color:var(--gc-warn-text);max-width:76ch}
+.warn ul{margin:14px 0 0;padding-left:20px;font-size:var(--fs-body)}
+.warn li{margin:7px 0}
+.warn b{font-weight:600}
 
-/* req row */
-.reqs{display:grid; grid-template-columns:repeat(3,1fr); gap:18px}
-.req{border:1px solid var(--edge); border-radius:14px; padding:24px; background:var(--panel)}
-.req .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:10px}
-.req .v{font-size:15px; color:var(--ink)}
-.req .v small{color:var(--muted); display:block; font-size:13px; margin-top:4px; font-family:var(--sans)}
+/* ---------- requirements table ---------- */
+.table-wrap{border:1px solid var(--gc-line);border-radius:var(--r-sm);overflow:hidden}
+table.reqs{width:100%;border-collapse:collapse;background:var(--gc-surface)}
+table.reqs th,table.reqs td{text-align:left;padding:14px 16px;vertical-align:top;border-bottom:1px solid var(--gc-line)}
+table.reqs tr:last-child th,table.reqs tr:last-child td{border-bottom:0}
+table.reqs th{
+  width:210px;background:var(--gc-band);font-size:var(--fs-micro);font-weight:800;
+  text-transform:uppercase;letter-spacing:.02em;color:var(--gc-muted);white-space:nowrap;
+}
+table.reqs td{font-size:var(--fs-body);color:var(--gc-ink-strong)}
+table.reqs td small{display:block;margin-top:4px;font-size:var(--fs-body);color:var(--gc-muted)}
 
-/* footer */
-footer{border-top:1px solid var(--edge); margin-top:40px; padding:54px 0 60px}
-.foot-grid{display:flex; justify-content:space-between; gap:30px; flex-wrap:wrap; align-items:flex-start}
-.foot-brand{max-width:40ch}
-.foot-brand .ft{font-family:var(--serif); font-size:19px; margin-bottom:10px}
-.foot-brand p{color:var(--faint); font-size:13px}
-.foot-links{display:flex; gap:40px; flex-wrap:wrap}
-.foot-col h5{font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:14px}
-.foot-col a{display:block; color:var(--muted); text-decoration:none; font-size:14px; margin:9px 0; transition:color .2s}
-.foot-col a:hover{color:var(--amber)}
-.foot-base{margin-top:46px; padding-top:26px; border-top:1px solid var(--edge);
-  display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
-  font-family:var(--mono); font-size:11.5px; color:var(--faint); letter-spacing:.03em}
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
+.foot-grid{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.foot-brand{max-width:46ch}
+.foot-brand .ft{font-size:1.05rem;color:var(--gc-ink-strong);margin-bottom:8px}
+.foot-brand p{font-size:var(--fs-body);color:var(--gc-muted)}
+.foot-links{display:flex;gap:48px;flex-wrap:wrap}
+.foot-col h5{
+  font-size:var(--fs-small);font-weight:800;text-transform:uppercase;
+  letter-spacing:.02em;color:var(--gc-muted);margin-bottom:12px;
+}
+.foot-col a{display:block;font-size:var(--fs-body);font-weight:400;color:var(--gc-ink);text-decoration:none;margin:8px 0}
+.foot-col a:hover{color:var(--gc-green-deep);text-decoration:underline}
+.foot-base{
+  margin-top:40px;padding-top:22px;border-top:1px solid var(--gc-line);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--font-mono);font-size:12px;color:var(--gc-muted);
+}
 
-/* reveal */
-.reveal{opacity:0; transform:translateY(26px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1)}
-.reveal.in{opacity:1; transform:none}
-
-/* responsive */
-@media(max-width:880px){
-  .hero{grid-template-columns:1fr; gap:48px}
+/* ---------- responsive ---------- */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;gap:44px}
   .ring-stage{order:-1}
-  .cards,.reqs{grid-template-columns:1fr}
+  /* below the circle rather than on top of it — the art stays readable */
+  .hero-chip{position:static;margin-top:16px}
+  .cards{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr}
   .release{grid-template-columns:1fr}
-  .release .left{border-right:none; border-bottom:1px solid var(--edge)}
-  .stats{grid-template-columns:repeat(2,1fr)}
+  .release .right{border-left:0;border-top:1px solid var(--gc-line)}
   .nav-link.hide-sm{display:none}
 }
+@media(max-width:560px){
+  table.reqs th{width:auto;display:block;border-bottom:0}
+  table.reqs td{display:block}
+}
 @media(prefers-reduced-motion:reduce){
-  .beam-group{animation:none}
-  .dl::after{animation:none; display:none}
-  .reveal{opacity:1; transform:none; transition:none}
+  html{scroll-behavior:auto}
+  .btn:hover,.card:hover{transform:none}
 }
 </style>
 </head>
 <body>
-<div class="bg-fx"></div>
-<div class="bg-grid"></div>
-<svg class="grain"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
 
-<nav>
-  <a class="brand" href="#top" aria-label="KIM Start Angle home">
-    <svg viewBox="0 0 256 256" aria-hidden="true">
-      <rect width="256" height="256" rx="52" fill="#0F172A"/>
-      <rect x="3" y="3" width="250" height="250" rx="49" fill="none" stroke="#334155" stroke-width="2"/>
-      <polygon points="175,61 99.8,208.2 62.2,181.8" fill="#F59E0B" opacity="0.12"/>
-      <circle cx="128" cy="128" r="82" fill="none" stroke="#7C3AED" stroke-width="13"/>
-      <line x1="175" y1="61" x2="81" y2="195" stroke="#F59E0B" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
-      <line x1="99.8" y1="208.2" x2="62.2" y2="181.8" stroke="#F59E0B" stroke-width="16" stroke-linecap="round"/>
-      <circle cx="175" cy="61" r="10" fill="#F59E0B"/>
-      <circle cx="117" cy="120" r="8.5" fill="#E2E8F0"/><circle cx="140" cy="125" r="8.5" fill="#E2E8F0"/><circle cx="126" cy="141" r="8.5" fill="#E2E8F0"/>
-    </svg>
-    <span><b>KIM Start Angle</b><span class="sub">Gantry optimiser</span></span>
-  </a>
-  <div class="nav-right">
-    <a class="nav-link hide-sm" href="#how">How it works</a>
-    <a class="nav-link hide-sm" href="#safety">Safety</a>
-    <a class="vchip" id="navVersion" href="#download">— · —</a>
-  </div>
-</nav>
-
-<main id="top" class="wrap">
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-copy">
-      <div class="eyebrow reveal">Elekta · kV Intrafraction Monitoring</div>
-      <h1 class="reveal">Find the <em>optimal</em><br>gantry start angle.</h1>
-      <p class="lede reveal">KIM Start Angle reads a patient's planning-CT centroid file and computes the Elekta gantry angle that keeps <b>every prostate fiducial separated</b> on the kV imager — maximising the reliability of intrafraction tracking at beam-on.</p>
-      <div class="cta-row reveal">
-        <a class="dl" id="dlBtn" href="#download" aria-disabled="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 18.5V20a1 1 0 001 1h14a1 1 0 001-1v-1.5"/></svg>
-          <span id="dlLabel">Loading release…</span>
-          <span class="meta" id="dlMeta"></span>
-        </a>
-        <a class="ghost" id="allReleases" href="#" target="_blank" rel="noopener">All releases →</a>
-      </div>
-      <div class="os-note">Windows 10 / 11 · 64-bit · standalone .exe · no install required</div>
-    </div>
-
-    <div class="ring-stage reveal">
-      <div class="float-chip">65° NGA<span>OPTIMAL · kV 155°</span></div>
-      <svg viewBox="0 0 400 400" role="img" aria-label="Animated gantry ring sweeping the kV beam through all angles">
-        <defs>
-          <radialGradient id="seedG" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#fff"/><stop offset="100%" stop-color="#C9D4E6"/></radialGradient>
-          <linearGradient id="beamG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFC663"/><stop offset="100%" stop-color="#F5A623"/></linearGradient>
-        </defs>
-        <!-- tick ring (populated by script) -->
-        <g id="tickRing" stroke="#33415A" stroke-width="1.5" opacity=".55"></g>
-        <!-- faint outer ring -->
-        <circle cx="200" cy="200" r="168" fill="none" stroke="#1B2640" stroke-width="1.5"/>
-        <!-- optimal angle marker (fixed) -->
-        <g class="pulse">
-          <line x1="200" y1="200" x2="313.8" y2="86.2" stroke="rgba(245,166,35,.18)" stroke-width="2" stroke-dasharray="4 5"/>
-          <circle cx="313.8" cy="86.2" r="5" fill="#F5A623"/>
-        </g>
-        <!-- main gantry ring -->
-        <circle cx="200" cy="200" r="130" fill="none" stroke="#7C3AED" stroke-width="14"
-                class="draw" pathLength="1" style="filter:drop-shadow(0 0 12px rgba(124,58,237,.5))"/>
-        <!-- rotating beam assembly -->
-        <g class="beam-group">
-          <polygon points="270,90 145,330 115,300" fill="url(#beamG)" opacity=".10"/>
-          <line x1="270" y1="90" x2="130" y2="310" stroke="url(#beamG)" stroke-width="6" stroke-linecap="round" opacity=".9"/>
-          <line x1="151" y1="328" x2="109" y2="292" stroke="#F5A623" stroke-width="15" stroke-linecap="round"/>
-          <circle cx="270" cy="90" r="11" fill="#F5A623" style="filter:drop-shadow(0 0 8px rgba(245,166,35,.8))"/>
-        </g>
-        <!-- fiducial seeds -->
-        <g>
-          <circle cx="184" cy="188" r="11" fill="url(#seedG)"/>
-          <circle cx="218" cy="196" r="11" fill="url(#seedG)"/>
-          <circle cx="197" cy="220" r="11" fill="url(#seedG)"/>
-        </g>
+<header class="site-head">
+  <div class="stripe"></div>
+  <nav>
+    <a class="brand" href="#top" aria-label="KIM Start Angle home">
+      <svg viewBox="0 0 256 256" aria-hidden="true">
+        <circle cx="128" cy="128" r="88" fill="none" stroke="#00a869" stroke-width="18"/>
+        <circle cx="190" cy="66" r="26" fill="#333438"/>
+        <rect x="-30" y="-11" width="60" height="22" rx="11" fill="#333438" transform="translate(66,190) rotate(45)"/>
       </svg>
+      <span><b>KIM Start Angle</b><span class="sub">Gantry optimiser</span></span>
+    </a>
+    <div class="nav-right">
+      <a class="nav-link hide-sm" href="#how">How it works</a>
+      <a class="nav-link hide-sm" href="#safety">Safety</a>
+      <a id="navVersion" href="#download">—</a>
     </div>
-  </section>
+  </nav>
+</header>
 
-  <!-- STATS -->
-  <section class="stats reveal" aria-label="At a glance">
-    <div class="stat"><div class="n">361<small>°</small></div><div class="l">Angles evaluated</div></div>
-    <div class="stat"><div class="n">10<small>mm</small></div><div class="l">Separation threshold</div></div>
-    <div class="stat"><div class="n">3</div><div class="l">Fiducial pairs tracked</div></div>
-    <div class="stat"><div class="n">1<small>click</small></div><div class="l">Centroid → angle</div></div>
-  </section>
+<main id="top">
+  <div class="wrap">
 
-  <!-- HOW -->
-  <section class="pad" id="how">
-    <div class="sec-head reveal">
-      <div class="sec-kicker">The workflow</div>
-      <h2>From centroid file to a defensible angle.</h2>
-      <p>Pure-rotation projection of each marker into the kV beam's-eye view, evaluated across the full gantry arc — the same geometry the original MATLAB reference encodes, in a clinical GUI.</p>
-    </div>
-    <div class="cards">
-      <div class="card reveal">
-        <div class="num">01</div>
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#9B6BFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/><path d="M8 13h8M8 17h5"/></svg></div>
-        <h3>Read the centroid</h3>
-        <p>Load the <code style="font-family:var(--mono);font-size:.85em">Centroid.txt</code> exported from planning. Three fiducial markers plus isocentre, converted to IEC millimetres.</p>
-      </div>
-      <div class="card reveal">
-        <div class="num">02</div>
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#9B6BFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12L18.4 7.6"/><circle cx="12" cy="12" r="1.6" fill="#9B6BFF"/></svg></div>
-        <h3>Sweep every angle</h3>
-        <p>Each marker is rotated into the kV plane at all 361 nominal gantry angles; pairwise separations are computed continuously.</p>
-      </div>
-      <div class="card reveal">
-        <div class="num">03</div>
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 6-8"/><path d="M3 21h18"/><circle cx="18" cy="6" r="1.4" fill="#F5A623"/></svg></div>
-        <h3>Pick the optimum</h3>
-        <p>The angle that maximises total separation while keeping all three pairs ≥ 10 mm — with an interactive chart, gantry widget and live detector view.</p>
-      </div>
-    </div>
-  </section>
-
-  <div class="divider wrap" style="max-width:var(--maxw)"></div>
-
-  <!-- DOWNLOAD / RELEASE -->
-  <section class="pad" id="download">
-    <div class="sec-head reveal">
-      <div class="sec-kicker">Download</div>
-      <h2>Always the latest build.</h2>
-      <p>This page reads the most recent published release directly from GitHub, so the link below is never stale.</p>
-    </div>
-    <div class="release reveal">
-      <div class="left">
-        <span class="rel-tag"><span class="dot"></span><span id="relTag">checking…</span></span>
-        <h3 id="relName">Latest release</h3>
-        <div class="rel-meta">
-          <div><span>Published</span><b id="relDate">—</b></div>
-          <div><span>Size</span><b id="relSize">—</b></div>
-          <div><span>Platform</span><b>Windows x64</b></div>
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <p class="eyebrow">kV intrafraction monitoring · Elekta</p>
+        <h1>Find the optimal gantry start angle.</h1>
+        <p class="lede">KIM Start Angle reads a patient's planning-CT centroid file and computes the Elekta gantry angle that keeps all three prostate fiducials separated on the kV imager at beam-on.</p>
+        <div class="cta-row">
+          <a class="btn primary" id="dlBtn" href="#download" aria-disabled="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            <span id="dlLabel">Loading release</span>
+            <span class="btn-meta" id="dlMeta"></span>
+          </a>
+          <a class="btn" id="allReleases" href="#" target="_blank" rel="noopener">All releases</a>
         </div>
-        <a class="dl" id="dlBtn2" href="#" aria-disabled="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/><path d="M4 18.5V20a1 1 0 001 1h14a1 1 0 001-1v-1.5"/></svg>
-          <span id="dlLabel2">Loading…</span>
-        </a>
-        <p class="os-note" id="fallbackNote" style="margin-top:20px"></p>
+        <p class="os-note">Windows 10 / 11 · 64-bit · standalone .exe · no install required</p>
       </div>
-      <div class="right">
-        <div class="notes-label">Release notes</div>
-        <div class="notes" id="relNotes"><p style="color:var(--faint)">Fetching changelog…</p></div>
+
+      <div class="ring-stage">
+        <div class="ring-inner">
+        <div class="scatter" aria-hidden="true"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+        <div class="crop">
+          <svg viewBox="0 0 400 400" role="img" aria-label="Gantry ring with the kV source and detector set at the optimal start angle, and three prostate fiducials at the isocentre">
+            <!-- gantry ring -->
+            <circle cx="200" cy="200" r="130" fill="none" stroke="#00a869" stroke-width="12"/>
+            <!-- kV beam axis -->
+            <line x1="270" y1="90" x2="130" y2="310" stroke="#333438" stroke-width="2" stroke-dasharray="7 7"/>
+            <!-- kV source -->
+            <circle cx="270" cy="90" r="14" fill="#333438"/>
+            <!-- kV detector panel -->
+            <rect x="-40" y="-9" width="80" height="18" rx="8" fill="#333438" transform="translate(130,310) rotate(32.5)"/>
+            <!-- prostate fiducials -->
+            <g fill="#333438">
+              <circle cx="184" cy="188" r="9"/>
+              <circle cx="218" cy="196" r="9"/>
+              <circle cx="197" cy="220" r="9"/>
+            </g>
+          </svg>
+        </div>
+        </div>
+        <div class="hero-chip"><b>65° NGA</b><span>Example case · kV 155°</span></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- SAFETY -->
-  <section class="pad" id="safety">
-    <div class="warn reveal">
-      <div class="wh">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#FFC663" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
-        <h3>Site commissioning required before clinical use</h3>
+    <!-- SCREENSHOT -->
+    <section aria-label="Application screenshot">
+      <div class="shot">
+        <img src="screenshot.png" width="1260" height="752" loading="lazy"
+             alt="KIM Start Angle showing the separation chart, the optimal start angle of 65 degrees, the gantry position widget and the kV projected seeds panel.">
       </div>
-      <p>This tool uses a simplified pure-rotation projection model — no source-to-detector distance, pixel geometry, or imager-sag corrections. The recommended angle is a geometric prediction. <b>Before using results clinically, a qualified medical physicist must verify, at each site, that:</b></p>
-      <ul>
-        <li>the separation values and seed positions shown match the actual fiducial positions in the kV frames KIM acquires at that nominal gantry angle;</li>
-        <li>the angle convention (NGA 0° = MV source up; kV source = NGA + 90°) matches the linac's displayed gantry angle;</li>
-        <li>the predicted optimal angle produces acceptable KIM tracking in practice.</li>
-      </ul>
-    </div>
-  </section>
+      <div class="metrics">
+        <div class="metric"><div class="n">361</div><div class="l">Gantry angles evaluated</div></div>
+        <div class="metric"><div class="n">10 mm</div><div class="l">Minimum separation</div></div>
+        <div class="metric"><div class="n">3</div><div class="l">Fiducial pairs</div></div>
+      </div>
+    </section>
 
-  <!-- REQUIREMENTS -->
-  <section class="pad" style="padding-top:0">
-    <div class="sec-head reveal">
-      <div class="sec-kicker">Requirements</div>
-      <h2>What you need.</h2>
-    </div>
-    <div class="reqs">
-      <div class="req reveal"><div class="k">Operating system</div><div class="v">Windows 10 / 11<small>64-bit. Microsoft Edge WebView2 runtime (preinstalled on current Windows).</small></div></div>
-      <div class="req reveal"><div class="k">Install</div><div class="v">None<small>Single portable executable — download and run.</small></div></div>
-      <div class="req reveal"><div class="k">Input</div><div class="v">Centroid.txt<small>Three fiducial markers + isocentre, exported from the planning system in cm.</small></div></div>
-    </div>
-  </section>
+    <!-- HOW IT WORKS -->
+    <section class="section" id="how">
+      <div class="sec-head">
+        <p class="eyebrow">How it works</p>
+        <h2>Centroid file to gantry angle.</h2>
+        <p>Each marker is projected into the kV beam's-eye view by pure rotation and evaluated across the full gantry arc. The geometry follows the original MATLAB reference script.</p>
+      </div>
+      <div class="cards">
+        <div class="card">
+          <p class="eyebrow">01</p>
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></div>
+          <h3>Read the centroid</h3>
+          <p>Load the <code>Centroid.txt</code> file exported from planning. Three fiducial markers plus the isocentre, converted to IEC millimetres.</p>
+        </div>
+        <div class="card">
+          <p class="eyebrow">02</p>
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
+          <h3>Sweep every angle</h3>
+          <p>Each marker is rotated into the kV plane at all 361 nominal gantry angles; pairwise separations are computed continuously.</p>
+        </div>
+        <div class="card">
+          <p class="eyebrow">03</p>
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
+          <h3>Pick the optimum</h3>
+          <p>The angle with the largest total separation where all three pairs stay at or above 10 mm. Shown with a separation chart, a gantry widget and a live detector view.</p>
+        </div>
+      </div>
+    </section>
 
+    <!-- DOWNLOAD -->
+    <section class="section" id="download">
+      <div class="sec-head">
+        <p class="eyebrow">Download</p>
+        <h2>Latest release</h2>
+        <p>This page reads the most recent published release from GitHub.</p>
+      </div>
+      <div class="release">
+        <div class="left">
+          <div class="rel-head">
+            <span class="cap pass" id="relCap">Latest</span>
+            <span id="relTag">checking</span>
+          </div>
+          <h3 id="relName">Latest release</h3>
+          <div class="rel-meta">
+            <div><span>Published</span><b id="relDate">—</b></div>
+            <div><span>Size</span><b id="relSize">—</b></div>
+            <div><span>Platform</span><b>Windows x64</b></div>
+          </div>
+          <a class="btn primary" id="dlBtn2" href="#" aria-disabled="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            <span id="dlLabel2">Loading</span>
+          </a>
+          <p class="notice error" id="fallbackNote" hidden></p>
+        </div>
+        <div class="right">
+          <div class="notes-label">Release notes</div>
+          <div class="notes" id="relNotes"><p class="notice info">Loading the latest release from GitHub.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SAFETY -->
+    <section class="section" id="safety">
+      <div class="warn">
+        <div class="warn-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          <h2>Site commissioning required before clinical use</h2>
+        </div>
+        <p>This tool uses a simplified pure-rotation projection model — no source-to-detector distance, pixel geometry, or imager-sag corrections. The recommended angle is a geometric prediction. <b>Before using results clinically, a qualified medical physicist must verify, at each site, that:</b></p>
+        <ul>
+          <li>the separation values and seed positions shown match the actual fiducial positions in the kV frames KIM acquires at that nominal gantry angle;</li>
+          <li>the angle convention (NGA 0° = MV source up; kV source = NGA + 90°) matches the linac's displayed gantry angle;</li>
+          <li>the predicted optimal angle produces acceptable KIM tracking in practice.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- REQUIREMENTS -->
+    <section class="section">
+      <div class="sec-head">
+        <p class="eyebrow">Requirements</p>
+        <h2>Windows 10 or 11, no install.</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="reqs">
+          <tbody>
+            <tr>
+              <th scope="row">Operating system</th>
+              <td>Windows 10 / 11, 64-bit<small>Microsoft Edge WebView2 runtime (preinstalled on current Windows).</small></td>
+            </tr>
+            <tr>
+              <th scope="row">Install</th>
+              <td>None<small>Single portable executable. Download and run.</small></td>
+            </tr>
+            <tr>
+              <th scope="row">Input</th>
+              <td>Centroid.txt<small>Three fiducial markers and the isocentre, exported from the planning system in cm.</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
 </main>
 
 <footer>
@@ -436,7 +495,7 @@ footer{border-top:1px solid var(--edge); margin-top:40px; padding:54px 0 60px}
     <div class="foot-grid">
       <div class="foot-brand">
         <div class="ft">KIM Start Angle</div>
-        <p>A clinical desktop utility for Elekta prostate KIM. Research / commissioning tool — not a medical device. Validate at your site before clinical use.</p>
+        <p>A clinical desktop utility for Elekta prostate KIM. Research and commissioning tool, not a medical device. Validate at your site before clinical use.</p>
       </div>
       <div class="foot-links">
         <div class="foot-col">
@@ -454,7 +513,7 @@ footer{border-top:1px solid var(--edge); margin-top:40px; padding:54px 0 60px}
     </div>
     <div class="foot-base">
       <span id="footVersion">KIM Start Angle</span>
-      <span>kV Intrafraction Monitoring · gantry start-angle optimiser</span>
+      <span>kV intrafraction monitoring · gantry start-angle optimiser</span>
     </div>
   </div>
 </footer>
@@ -475,32 +534,6 @@ const API = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/release
 const RELEASES_URL = `https://github.com/${CONFIG.owner}/${CONFIG.repo}/releases`;
 const REPO_URL = `https://github.com/${CONFIG.owner}/${CONFIG.repo}`;
 
-/* draw the gantry tick marks (every 30°) */
-(function ticks(){
-  const g = document.getElementById('tickRing');
-  let s = "";
-  for(let a=0;a<360;a+=30){
-    const r1=158, r2=(a%90===0)?142:150, rad=(a-90)*Math.PI/180;
-    const x1=200+r1*Math.cos(rad), y1=200+r1*Math.sin(rad);
-    const x2=200+r2*Math.cos(rad), y2=200+r2*Math.sin(rad);
-    s += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;
-  }
-  if(g) g.innerHTML = s;
-})();
-
-/* reveal on scroll — with a safety net so content never stays hidden */
-const reveals = [...document.querySelectorAll('.reveal')];
-if("IntersectionObserver" in window){
-  const io = new IntersectionObserver((es)=>{
-    es.forEach((e,i)=>{ if(e.isIntersecting){ setTimeout(()=>e.target.classList.add('in'), (i%6)*70); io.unobserve(e.target);} });
-  },{threshold:.12, rootMargin:"0px 0px -8% 0px"});
-  reveals.forEach(el=>io.observe(el));
-  // failsafe: reveal anything still hidden after 4s (covers tall viewports / IO quirks)
-  setTimeout(()=>reveals.forEach(el=>el.classList.add('in')), 4000);
-}else{
-  reveals.forEach(el=>el.classList.add('in'));
-}
-
 /* helpers */
 const fmtSize = b => b>=1048576 ? (b/1048576).toFixed(1)+" MB" : (b/1024).toFixed(0)+" KB";
 const fmtDate = d => new Date(d).toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
@@ -518,7 +551,7 @@ function miniMd(src){
     html+=`<p style="margin:8px 0">${l}</p>`;
   }
   if(inList) html+="</ul>";
-  return html || '<p style="color:var(--faint)">No notes provided.</p>';
+  return html || '<p class="notice info">No release notes for this version.</p>';
 }
 
 /* static links */
@@ -545,7 +578,7 @@ async function loadRelease(){
     const asset = (rel.assets||[]).find(a=>CONFIG.assetPattern.test(a.name)) || (rel.assets||[])[0];
 
     document.getElementById('navVersion').textContent = tag;
-    document.getElementById('relTag').textContent = `${tag} · latest`;
+    document.getElementById('relTag').textContent = tag;
     document.getElementById('relName').textContent = rel.name && rel.name!==tag ? rel.name : `KIM Start Angle ${tag}`;
     document.getElementById('relDate').textContent = rel.published_at ? fmtDate(rel.published_at) : "—";
     document.getElementById('relSize').textContent = asset ? fmtSize(asset.size) : "—";
@@ -559,12 +592,14 @@ async function loadRelease(){
     }
   }catch(err){
     // graceful fallback — likely no public release / rate-limited
-    const msg = "Live release info unavailable — open the releases page to download.";
-    document.getElementById('navVersion').textContent = "releases →";
-    document.getElementById('relTag').textContent = "see releases";
+    const msg = "Release information is unavailable. Open the releases page to download.";
+    document.getElementById('navVersion').textContent = "Releases";
+    document.getElementById('relCap').hidden = true;
+    document.getElementById('relTag').textContent = "unavailable";
     document.getElementById('relDate').textContent = "—";
-    document.getElementById('relNotes').innerHTML = `<p style="color:var(--faint)">${msg}</p>`;
-    document.getElementById('fallbackNote').textContent = msg;
+    document.getElementById('relNotes').innerHTML = `<p class="notice error">${msg}</p>`;
+    const note = document.getElementById('fallbackNote');
+    note.textContent = msg; note.hidden = false;
     for(const [b,l] of [["dlBtn","dlLabel"],["dlBtn2","dlLabel2"]]){
       const btn=document.getElementById(b); if(!btn) continue;
       btn.href=RELEASES_URL; btn.removeAttribute("aria-disabled"); btn.target="_blank"; btn.rel="noopener";
