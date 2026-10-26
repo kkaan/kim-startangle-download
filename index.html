@@ -4,10 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>KIM Start Angle — optimal gantry start angle for prostate KIM</title>
-<meta name="description" content="A clinical desktop tool that turns a planning-CT centroid file into the optimal Elekta gantry start angle for prostate kV intrafraction monitoring (KIM)." />
+<meta name="description" content="A clinical desktop tool for prostate kV intrafraction monitoring (KIM) on Elekta linacs: writes the seed centroid file from DICOM, finds the gantry start angle with the best seed separation, and recommends the KIM field of view." />
 <meta name="theme-color" content="#00a869" />
 <meta property="og:title" content="KIM Start Angle" />
-<meta property="og:description" content="Find the gantry angle that keeps all three prostate fiducials separated on the kV imager." />
+<meta property="og:description" content="Centroid file, gantry start angle and KIM field of view for prostate KIM, from the DICOM plan and structure set." />
 <meta property="og:type" content="website" />
 
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Ccircle cx='128' cy='128' r='88' fill='none' stroke='%2300a869' stroke-width='18'/%3E%3Ccircle cx='190' cy='66' r='26' fill='%23333438'/%3E%3Crect x='-30' y='-11' width='60' height='22' rx='11' fill='%23333438' transform='translate(66,190) rotate(45)'/%3E%3C/svg%3E" />
@@ -180,29 +180,21 @@ nav{
 }
 
 /* ---------- screenshot ---------- */
-.shot{border:1px solid var(--gc-line);border-radius:var(--r-sm);overflow:hidden;background:var(--gc-band-soft)}
-.shot img{width:100%}
-
-/* ---------- metric band ---------- */
-.metrics{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
-  background:var(--gc-line);border:1px solid var(--gc-line);border-radius:var(--r-sm);
-  overflow:hidden;margin-top:36px;
-}
-.metric{background:var(--gc-surface);padding:18px 20px}
-.metric .n{font-size:1.6rem;font-weight:700;color:var(--gc-ink-strong);line-height:1.1}
-.metric .l{
-  margin-top:6px;font-size:var(--fs-small);font-weight:800;
-  text-transform:uppercase;letter-spacing:.02em;color:var(--gc-muted);
-}
+.shot{margin:0;border:1px solid var(--gc-line);border-radius:var(--r-sm);overflow:hidden;background:var(--gc-band-soft)}
+.shot img,.shot video{width:100%;height:auto;display:block}
+.shot figcaption{padding:10px 16px;font-size:var(--fs-small);color:var(--gc-muted);border-top:1px solid var(--gc-line)}
+.card .figs{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.card .figs img{width:auto;height:auto;max-width:100%;max-height:320px;min-width:0;border:1px solid var(--gc-line);border-radius:var(--r-sm)}
 
 /* ---------- step cards ---------- */
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
 .card{
   background:var(--gc-surface);border:1px solid var(--gc-line);border-radius:var(--r-sm);
   padding:24px;transition:transform var(--t-fast),border-color var(--t-fast);
 }
 .card:hover{transform:var(--hover-lift);border-color:var(--gc-green-line)}
+/* an odd card out spans the row rather than leaving a hole beside it */
+.cards .card:last-child:nth-child(odd){grid-column:1 / -1}
 .card .ic{color:var(--gc-green);margin-bottom:16px}
 .card .ic svg{width:24px;height:24px}
 .card h3{margin:0 0 8px}
@@ -289,7 +281,6 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
   /* below the circle rather than on top of it — the art stays readable */
   .hero-chip{position:static;margin-top:16px}
   .cards{grid-template-columns:1fr}
-  .metrics{grid-template-columns:1fr}
   .release{grid-template-columns:1fr}
   .release .right{border-left:0;border-top:1px solid var(--gc-line)}
   .nav-link.hide-sm{display:none}
@@ -333,7 +324,7 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
       <div>
         <p class="eyebrow">kV intrafraction monitoring · Elekta</p>
         <h1>Find the optimal gantry start angle.</h1>
-        <p class="lede">KIM Start Angle reads a patient's planning-CT centroid file and computes the Elekta gantry angle that keeps all three prostate fiducials separated on the kV imager at beam-on.</p>
+        <p class="lede">KIM Start Angle prepares a prostate patient for KIM on an Elekta linac. It writes the seed centroid file from the DICOM plan and structure set (or reads an existing <span class="mono">Centroid.txt</span>), finds the gantry start angle where the seeds are best separated on the kV imager, and recommends the KIM field-of-view setting that keeps every seed in view through the arc. A seed can be dropped to save a one- or two-seed centroid file.</p>
         <div class="cta-row">
           <a class="btn primary" id="dlBtn" href="#download" aria-disabled="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
@@ -373,15 +364,12 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
 
     <!-- SCREENSHOT -->
     <section aria-label="Application screenshot">
-      <div class="shot">
-        <img src="screenshot.png" width="1260" height="752" loading="lazy"
-             alt="KIM Start Angle showing the separation chart, the optimal start angle of 65 degrees, the gantry position widget and the kV projected seeds panel.">
-      </div>
-      <div class="metrics">
-        <div class="metric"><div class="n">361</div><div class="l">Gantry angles evaluated</div></div>
-        <div class="metric"><div class="n">10 mm</div><div class="l">Minimum separation</div></div>
-        <div class="metric"><div class="n">3</div><div class="l">Fiducial pairs</div></div>
-      </div>
+      <figure class="shot">
+        <video src="img/seed-trajectory.mp4" poster="img/seed-trajectory.png" width="1218" height="884"
+               autoplay muted loop playsinline preload="metadata"
+               aria-label="Dragging the gantry widget: the cursor moves along the separation chart and the seeds move in the kV projected view."></video>
+        <figcaption>Drag the gantry to any angle; the kV projected view shows where each seed lands on the detector, against KIM's 60 × 60 mm default view.</figcaption>
+      </figure>
     </section>
 
     <!-- HOW IT WORKS -->
@@ -389,26 +377,44 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
       <div class="sec-head">
         <p class="eyebrow">How it works</p>
         <h2>Centroid file to gantry angle.</h2>
-        <p>Each marker is projected into the kV beam's-eye view by pure rotation and evaluated across the full gantry arc. The geometry follows the original MATLAB reference script.</p>
+        <p>A geometric model that follows the original MATLAB reference script, <span class="mono">LARK_start_angle.m</span>.</p>
       </div>
       <div class="cards">
         <div class="card">
           <p class="eyebrow">01</p>
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></div>
-          <h3>Read the centroid</h3>
-          <p>Load the <code>Centroid.txt</code> file exported from planning. Three fiducial markers plus the isocentre, converted to IEC millimetres.</p>
+          <h3>Input</h3>
+          <p>Load the DICOM RT Plan and RT Structure Set, tick one to three seed ROIs, and the app writes the <code>Centroid.txt</code> itself; the separate centroid utility is no longer needed. Seed positions are the mean of each ROI's contour vertices, and the output agrees with the previous utility on the clinical test set. Setup and port-film fields are ignored for the isocentre. An existing <code>Centroid.txt</code> can still be loaded directly. Coordinates are converted to IEC mm relative to the isocentre.</p>
+          <div class="figs"><img src="img/centroid-generator.png" width="329" height="590" loading="lazy" alt="DICOM input panel: RT Plan and RT Struct selected, three seed structures ticked, Generate Centroid button and the saved centroid path."></div>
         </div>
         <div class="card">
           <p class="eyebrow">02</p>
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
-          <h3>Sweep every angle</h3>
-          <p>Each marker is rotated into the kV plane at all 361 nominal gantry angles; pairwise separations are computed continuously.</p>
+          <h3>Projection</h3>
+          <p>The kV source sits at NGA + 90°. Each seed is rotated about the SI axis into the kV plane: lateral position is <span class="mono">x·cos θ − z·sin θ</span>, SI is unchanged. Magnification, source distance and panel geometry are not modelled. Pairwise separations are computed at 1° steps from −180° to 180°.</p>
         </div>
         <div class="card">
           <p class="eyebrow">03</p>
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/></svg></div>
-          <h3>Pick the optimum</h3>
-          <p>The angle with the largest total separation where all three pairs stay at or above 10 mm. Shown with a separation chart, a gantry widget and a live detector view.</p>
+          <h3>Start angle</h3>
+          <p>Of the angles where every pair is at least 10 mm apart, the one with the largest summed separation. If no angle clears 10 mm for every pair, the angle that maximises the smallest pair separation is used instead, as in the MATLAB script. With two seeds there is a single pair; with one there is nothing to optimise.</p>
+        </div>
+        <div class="card">
+          <p class="eyebrow">04</p>
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <h3>KIM field of view</h3>
+          <p>KIM searches a square centred on the isocentre, 60 × 60 mm by default, and loses a seed that leaves it. Over a full rotation a seed's horizontal position peaks at <span class="mono">√(x² + z²)</span> and its SI offset never changes, so the furthest seed sets the size. The app recommends the smallest square that keeps every seed 10 mm inside at every angle, rounded up to 10 mm. It allows for KIM 2.3 analysing about 24% more than the number entered on Elekta.</p>
+          <div class="figs"><img src="img/kim-view.png" width="526" height="516" loading="lazy" alt="kV projected view with seeds far inferior to the isocentre, outside the dashed KIM 60 × 60 default square and inside an amber KIM 160 × 160 recommended square."></div>
+        </div>
+        <div class="card">
+          <p class="eyebrow">05</p>
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="8" r="3"/><circle cx="10" cy="18" r="3"/><path d="m3 21 18-18"/></svg></div>
+          <h3>Fewer seeds</h3>
+          <p>KIM accepts centroid files with one, two or three seeds. Click a seed to drop it, or restore it; the start angle and view size are recalculated for the seeds that remain. A seed that cannot fit the 276.7 mm S20 image is proposed for deletion. The reduced file is the original with only the deleted seed lines removed.</p>
+          <div class="figs">
+            <img src="img/seed-delete-view.png" width="506" height="487" loading="lazy" alt="kV projected view with Seed 3 struck through as deleted; the recommended view shrinks to 150 × 150 mm and only the S1–S2 pair line remains.">
+            <img src="img/seed-delete-banner.png" width="348" height="319" loading="lazy" alt="Patient card with Seed3 marked deleted and a banner reading Centroid will omit: Seed3, with a Save reduced centroid button.">
+          </div>
         </div>
       </div>
     </section>
@@ -456,7 +462,8 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
         <ul>
           <li>the separation values and seed positions shown match the actual fiducial positions in the kV frames KIM acquires at that nominal gantry angle;</li>
           <li>the angle convention (NGA 0° = MV source up; kV source = NGA + 90°) matches the linac's displayed gantry angle;</li>
-          <li>the predicted optimal angle produces acceptable KIM tracking in practice.</li>
+          <li>the predicted optimal angle produces acceptable KIM tracking in practice;</li>
+          <li>the recommended field-of-view setting keeps every seed inside the region KIM searches, given that site's pixel scale.</li>
         </ul>
       </div>
     </section>
@@ -480,7 +487,7 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
             </tr>
             <tr>
               <th scope="row">Input</th>
-              <td>Centroid.txt<small>Three fiducial markers and the isocentre, exported from the planning system in cm.</small></td>
+              <td>DICOM RT Plan + RT Structure Set, or an existing Centroid.txt<small>From DICOM, pick one to three seed ROIs and the centroid file is written for you; no separate centroid utility needed.</small></td>
             </tr>
           </tbody>
         </table>
