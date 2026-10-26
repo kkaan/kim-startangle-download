@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>KIM Start Angle — optimal gantry start angle for prostate KIM</title>
-<meta name="description" content="A clinical desktop tool for prostate kV intrafraction monitoring (KIM) on Elekta linacs: writes the seed centroid file from DICOM, finds the gantry start angle with the best seed separation, and recommends the KIM field of view." />
+<title>KIM Primer — supporting KIM for PRIME</title>
+<meta name="description" content="KIM Primer: a desktop utility for prostate kV intrafraction monitoring (KIM) on Elekta linacs. Centroid files, centroid editing, optimal gantry start angle and KIM field of view." />
 <meta name="theme-color" content="#00a869" />
-<meta property="og:title" content="KIM Start Angle" />
-<meta property="og:description" content="Centroid file, gantry start angle and KIM field of view for prostate KIM, from the DICOM plan and structure set." />
+<meta property="og:title" content="KIM Primer" />
+<meta property="og:description" content="Supporting KIM for PRIME use: centroid files, centroid editing, gantry start angle and KIM field of view." />
 <meta property="og:type" content="website" />
 
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Ccircle cx='128' cy='128' r='88' fill='none' stroke='%2300a869' stroke-width='18'/%3E%3Ccircle cx='190' cy='66' r='26' fill='%23333438'/%3E%3Crect x='-30' y='-11' width='60' height='22' rx='11' fill='%23333438' transform='translate(66,190) rotate(45)'/%3E%3C/svg%3E" />
@@ -300,13 +300,13 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
 <header class="site-head">
   <div class="stripe"></div>
   <nav>
-    <a class="brand" href="#top" aria-label="KIM Start Angle home">
+    <a class="brand" href="#top" aria-label="KIM Primer home">
       <svg viewBox="0 0 256 256" aria-hidden="true">
         <circle cx="128" cy="128" r="88" fill="none" stroke="#00a869" stroke-width="18"/>
         <circle cx="190" cy="66" r="26" fill="#333438"/>
         <rect x="-30" y="-11" width="60" height="22" rx="11" fill="#333438" transform="translate(66,190) rotate(45)"/>
       </svg>
-      <span><b>KIM Start Angle</b><span class="sub">Gantry optimiser</span></span>
+      <span><b>KIM Primer</b><span class="sub">KIM treatment utility</span></span>
     </a>
     <div class="nav-right">
       <a class="nav-link hide-sm" href="#how">How it works</a>
@@ -323,8 +323,8 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
     <section class="hero">
       <div>
         <p class="eyebrow">kV intrafraction monitoring · Elekta</p>
-        <h1>Find the optimal gantry start angle.</h1>
-        <p class="lede">KIM Start Angle prepares a prostate patient for KIM on an Elekta linac. It writes the seed centroid file from the DICOM plan and structure set (or reads an existing <span class="mono">Centroid.txt</span>), finds the gantry start angle where the seeds are best separated on the kV imager, and recommends the KIM field-of-view setting that keeps every seed in view through the arc. A seed can be dropped to save a one- or two-seed centroid file.</p>
+        <h1>Supporting KIM for PRIME Use.</h1>
+        <p class="lede">KIM Primer is a utility for everything around a KIM treatment on an Elekta linac. It writes the seed centroid file from the DICOM plan and structure set (or reads an existing <span class="mono">Centroid.txt</span>), edits it down to one or two seeds, finds the gantry start angle where the seeds are best separated on the kV imager, and recommends the KIM field-of-view setting that keeps every seed in view through the arc. Flexmap coefficients, trace analysis and reporting are planned.</p>
         <div class="cta-row">
           <a class="btn primary" id="dlBtn" href="#download" aria-disabled="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
@@ -501,7 +501,7 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <div class="ft">KIM Start Angle</div>
+        <div class="ft">KIM Primer</div>
         <p>A clinical desktop utility for Elekta prostate KIM. Research and commissioning tool, not a medical device. Validate at your site before clinical use.</p>
       </div>
       <div class="foot-links">
@@ -519,7 +519,7 @@ footer{border-top:1px solid var(--gc-line);padding:48px 0 56px}
       </div>
     </div>
     <div class="foot-base">
-      <span id="footVersion">KIM Start Angle</span>
+      <span id="footVersion">KIM Primer</span>
       <span>kV intrafraction monitoring · gantry start-angle optimiser</span>
     </div>
   </div>
@@ -586,10 +586,10 @@ async function loadRelease(){
 
     document.getElementById('navVersion').textContent = tag;
     document.getElementById('relTag').textContent = tag;
-    document.getElementById('relName').textContent = rel.name && rel.name!==tag ? rel.name : `KIM Start Angle ${tag}`;
+    document.getElementById('relName').textContent = rel.name && rel.name!==tag ? rel.name : `KIM Primer ${tag}`;
     document.getElementById('relDate').textContent = rel.published_at ? fmtDate(rel.published_at) : "—";
     document.getElementById('relSize').textContent = asset ? fmtSize(asset.size) : "—";
-    document.getElementById('footVersion').textContent = `KIM Start Angle ${tag}`;
+    document.getElementById('footVersion').textContent = `KIM Primer ${tag}`;
     document.getElementById('relNotes').innerHTML = miniMd(rel.body || "");
 
     if(asset){
